@@ -61,9 +61,9 @@ def load_data(filename):
     """
     evidence = []
     labels = []
-    MustBeInt = ["Administrative", "Informational", "ProductRelated", 
+    must_be_int = ["Administrative", "Informational", "ProductRelated", 
     "OperatingSystems", "Browser", "Region", "TrafficType"]
-    MustBeFloat = ["Administrative_Duration", "Informational_Duration", 
+    must_be_float = ["Administrative_Duration", "Informational_Duration", 
     "ProductRelated_Duration", "BounceRates", "ExitRates", "PageValues", "SpecialDay"]
     months = ["Jan", "Feb", "Mar", "Apr", "May", "June", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -72,20 +72,21 @@ def load_data(filename):
         for row in reader:
             evidence_list = []
             for column in row:
-                if column in MustBeInt:
+                if column in must_be_int:
                     evidence_list.append(int(row[column]))
-                elif column in MustBeFloat:
+                elif column in must_be_float:
                     evidence_list.append(float(row[column]))
                 elif column == "Weekend":
-                    evidence_list.append(0 if row["Weekend"] == "FALSE" else 1)
+                    evidence_list.append(0 if row[column] == "FALSE" else 1)
                 elif column == "Month":
-                    evidence_list.append(months.index(row["Month"]))
+                    evidence_list.append(months.index(row[column]))
                 elif column == "VisitorType":
-                    evidence_list.append(0 if row["VisitorType"] == "New_Visitor" else 1)
+                    evidence_list.append(0 if row[column] == "New_Visitor" else 1)
                 else:
-                    labels.append(0 if row["Revenue"] == "FALSE" else 1)
+                    # column == "Revenue"
+                    labels.append(0 if row[column] == "FALSE" else 1)
             evidence.append(evidence_list)
-    # print(len(evidence), len(labels))
+    
     return (evidence, labels)
 
 
@@ -94,7 +95,9 @@ def train_model(evidence, labels):
     Given a list of evidence lists and a list of labels, return a
     fitted k-nearest neighbor model (k=1) trained on the data.
     """
-    raise NotImplementedError
+    model = KNeighborsClassifier(n_neighbors=1)
+    model.fit(evidence, labels)
+    return model
 
 
 def evaluate(labels, predictions):
@@ -112,7 +115,21 @@ def evaluate(labels, predictions):
     representing the "true negative rate": the proportion of
     actual negative labels that were accurately identified.
     """
-    raise NotImplementedError
+    total_pos_lab = labels.count(1)
+    total_neg_lab = labels.count(0)
+    positive = 0
+    negative = 0
+
+    for actual, predicted in zip(labels, predictions):
+        if actual == predicted:
+            if actual == 1:
+                positive += 1
+            else:
+                negative += 1
+    
+    sensitivity = positive / total_pos_lab
+    specificity = negative / total_neg_lab
+    return (sensitivity, specificity)
 
 
 if __name__ == "__main__":
