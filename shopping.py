@@ -59,7 +59,34 @@ def load_data(filename):
     labels should be the corresponding list of labels, where each label
     is 1 if Revenue is true, and 0 otherwise.
     """
-    raise NotImplementedError
+    evidence = []
+    labels = []
+    MustBeInt = ["Administrative", "Informational", "ProductRelated", 
+    "OperatingSystems", "Browser", "Region", "TrafficType"]
+    MustBeFloat = ["Administrative_Duration", "Informational_Duration", 
+    "ProductRelated_Duration", "BounceRates", "ExitRates", "PageValues", "SpecialDay"]
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "June", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+    with open(filename, 'r', encoding="utf-8") as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            evidence_list = []
+            for column in row:
+                if column in MustBeInt:
+                    evidence_list.append(int(row[column]))
+                elif column in MustBeFloat:
+                    evidence_list.append(float(row[column]))
+                elif column == "Weekend":
+                    evidence_list.append(0 if row["Weekend"] == "FALSE" else 1)
+                elif column == "Month":
+                    evidence_list.append(months.index(row["Month"]))
+                elif column == "VisitorType":
+                    evidence_list.append(0 if row["VisitorType"] == "New_Visitor" else 1)
+                else:
+                    labels.append(0 if row["Revenue"] == "FALSE" else 1)
+            evidence.append(evidence_list)
+    # print(len(evidence), len(labels))
+    return (evidence, labels)
 
 
 def train_model(evidence, labels):
